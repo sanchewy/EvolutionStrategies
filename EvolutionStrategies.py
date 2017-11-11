@@ -5,6 +5,8 @@ import random
 
 class EvolutionStrategy:
     #configuration parameters
+    num_input_nodes = 2
+    num_output_nodes = 1
     num_hidden_layers = 2
     num_hidden_nodes = 10         #per-layer
     #remember that the number_offspring is usually considerably higher than the parent generation size (populatino_size)
@@ -31,9 +33,14 @@ class EvolutionStrategy:
         init_bounds = sqrt(6/(self.num_inputs+self.num_outputs))
         for x in range(0, self.population_size):
             sigma = random.uniform(0, self.init_sigma_bounds)
-            individual = [None] * (self.num_hidden_layers*self.num_hidden_nodes)
-            for y in range(0, self.num_hidden_layers*self.num_hidden_nodes):
-                individual[y] = random.randint(-init_bounds, init_bounds)
+            in_hidden_edges = self.num_input_nodes * self.num_hidden_nodes
+            hidden_hidden_edges = 0
+            for i in range(self.num_hidden_layers -1):
+                hidden_hidden_edges += self.num_hidden_nodes * self.num_hidden_nodes
+            hidden_out_edges = self.num_hidden_nodes * self.num_output_nodes
+            individual = [None] * (in_hidden_edges + hidden_hidden_edges + hidden_out_edges)
+            for y in range(0, len(individual)):
+                individual[y] = random.uniform(-init_bounds, init_bounds)
             self.population[x] = [individual, sigma]
     
     #self-adaptive guassian mutation with weights on per-chromosome basis rather than element-index specific
@@ -44,7 +51,7 @@ class EvolutionStrategy:
         u = random.uniform(0,1)
         sigma = sigma * exp(u/sqrt(len(weights)))       #mutate the sigma value
         for index, wx in enumerate(weights):            #mutate the weights
-            shift = random.randint(0, int(sigma))       #becaue sigma is real, we need to cast it to keep the weights as integers.
+            shift = random.uniform(0, int(sigma))       #becaue sigma is real, we need to cast it to keep the weights as integers.
             wx = wx + shift
             wx = max(wx, self.weight_lower_bound)
             wx = min(wx, self.weight_upper_bound)
