@@ -6,15 +6,15 @@ import neural
 
 class EvolutionStrategy:
     #configuration parameters
-    num_input_nodes = 2
+    num_input_nodes = 11
     num_output_nodes = 1
     num_hidden_layers = 2
     num_hidden_nodes = 10         #per-layer
     #remember that the number_offspring is usually considerably higher than the parent generation size (populatino_size)
     population_size = 20          #parent generation size >>>TUNABLE<<<
     num_offspring = 40            #child generation size >>>TUNABL<<<
-    gen_till_convergence = 20     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
-    init_sigma_bounds = 5         #range in which the initial sigma variance values are set.
+    gen_till_convergence = 4     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
+    init_sigma_bounds = 50         #range in which the initial sigma variance values are set.
     weight_upper_bound = sys.maxint = 1000000
     weight_lower_bound = -sys.maxint
 
@@ -91,31 +91,32 @@ if __name__ == '__main__':
     num_generations = list()
     for databreak in range(5):
         while(es.gen_since_change < es.gen_till_convergence):       #while we havent converged
+            print("Generations since last change to best individual: "+str(es.gen_since_change))
             es.generation = es.generation + 1                       #increase generation count
             es.gen_since_change = es.gen_since_change + 1           #increase non-changing generation count
             for i in range(0, es.num_offspring):                    #generate offspring
                 chromo = es.population[random.randint(0, es.population_size - 1)]
                 es.offspring[i] = es.mutate(chromo)
             merged_pop = es.population + es.offspring
-            scores = [None] * len(merged_pop)
+            scores = list()
             for i in range(0, len(merged_pop)):                      #evaluate chromosomes
-                if(merged_pop[i][0] is not None):
-                    scores[i] = [i, es.evaluate(merged_pop[i],databreak)]
-                    if(es.best_individual_score is None or scores[i][1] < es.best_individual_score ):         #if there is a new best chromosome
-                        es.best_individual = merged_pop[i]
-                        es.best_individual_score = scores[i][1]
-                        es.gen_since_change = 0                          #reset non=changing generation count
-           # print(scores)
+                scores.append([merged_pop[i], es.evaluate(merged_pop[i],databreak)])
+                if(es.best_individual_score is None or scores[i][1] < es.best_individual_score ):         #if there is a new best chromosome
+                    print("Updated best individual.")
+                    es.best_individual = merged_pop[i]
+                    es.best_individual_score = scores[i][1]
+                    es.gen_since_change = 0                          #reset non=changing generation count
+            scores.sort(key=lambda x:x[1])
             for i in range(0, es.population_size):                   #put the |population_size| best individuals into next generation
-                index, value = min(scores,key=operator.itemgetter(0))
-                while merged_pop[index][0] is None:
-                    scores.remove([index, value])
-                    index, value = min(scores,key=operator.itemgetter(0))
-                es.population[i] = merged_pop[index]
-                scores.remove([index, value])
+                # print("scores[i][1]: "+str(scores[i][1]))
+                print("Population updated.")
+                es.population[i] = scores[i][0]
+                #print("Scores: "+str(scores[i]))
+            # print()
+        print("Crosss validation fold "+str(databreak)+" finished.")
         best_individuals.append(es.best_individual)
         final_errors.append(es.final_eval(es.best_individual, databreak))
         num_generations.append(es.generation)
         es.gen_since_change = 0
         es.best_individual, es.best_individual_score, es.generation = None, None, 0
-    print("Best individual weight matrix found. Individuals: %s Scores: %s. Generations: %s." %(str(best_individuals), str(final_errors), str(num_generations)))
+    print("Best individual weight matrix found. \nIndividual: %s.\n Scores: %s.\n Generations to train: %s." %(str(best_individuals[0]), str(final_errors), str(num_generations)))
