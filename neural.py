@@ -11,6 +11,7 @@ class NeuralNetwork:
     num_hidden_nodes = 10         #per-layer
     data_set_location = "2dData.tsv"
     dataset = list()
+    num_test_points = 10
     
     def __init__(self):
         dataset = self.load_csv(self.data_set_location)
@@ -43,22 +44,35 @@ class NeuralNetwork:
         for row in self.dataset:
             for i in range(len(row)):
                 row[i] = (float(row[i]) - datamin[i]) / (datamax[i] - datamin[i])
-                
-        
-    def evaluate_network(self, network):
-        return
-        
-    def forward_propagate(self, network):
+    
+    def forward_propagate(self, in_weights, h_weights, out_weights):
         sum_error = 0
-        for i in range(0, len(self.dataset)):
-            test_index = random.randint(0, len(self.dataset))
+        in_weights_array = np.array_split(np.array(in_weights), self.num_input_nodes)
+        h_weights_array = np.array_split(np.array(h_weights), self.num_hidden_nodes)
+        out_weights_array = np.array_split(np.array(out_weights), self.num_output_nodes)
+        for i in range(0, self.num_test_points):
+            test_index = random.randint(0, len(self.dataset)-1)
             data = np.array(self.dataset[test_index])
-            input_to_hidden = np.dot(data, network[0])
-            input_to_hidden = np.tanh(input_to_hidden)
-            hidden_to_hidden = np.dot(input_to_hidden, network[1])
-            hidden_to_hidden = np.tanh(hidden_to_hidden)
-            hidden_to_out = np.sum(np.dot(hidden_to_hidden, network[2]))
-        return sum_error
+            input_to_hidden = list()
+            for j in range(len(in_weights_array[0])):
+                sum = 0
+                for k in range(len(in_weights_array)):
+                    sum += in_weights_array[k][j] * data[k]
+                input_to_hidden.append(np.tanh(sum))
+            input_to_out = list()
+            for j in range(len(h_weights_array[0])):   #10
+                sum = 0
+                for k in range(len(h_weights_array)):    #10
+                    sum += h_weights_array[j][k] * input_to_hidden[j]       #2
+                input_to_out.append(np.tanh(sum))
+            output = 0
+            for j in range(len(out_weights_array)):
+                sum = 0
+                for k in range(len(out_weights_array[j])):
+                    sum += out_weights_array[j][k] * input_to_out[j]
+                output += sum
+            sum_error += (output - data[len(data)-1]) ** (2)
+        return sum_error/self.num_test_points
 
     def create_network(self, list_i_h_edges, list_h_h_edges, list_h_o_edges):
         num_weights = self.num_input_nodes * self.num_hidden_nodes + self.num_hidden_nodes * self.num_hidden_nodes + self.num_hidden_nodes * self.num_output_nodes
