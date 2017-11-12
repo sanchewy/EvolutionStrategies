@@ -67,7 +67,9 @@ class EvolutionStrategy:
         input = weights[:point1]
         hidden = weights[point1:point2]
         output = weights[point2:len(weights)]
-        error = neural.create_network(input,hidden,output)
+        nn = neural.NeuralNetwork()
+        net = nn.create_network(input,hidden,output)
+        error = nn.forward_propagate(net)
         #TODO: Call to neural network with weight vector and return the error metric.
         return 0
         
