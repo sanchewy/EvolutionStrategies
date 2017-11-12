@@ -13,7 +13,7 @@ class EvolutionStrategy:
     #remember that the number_offspring is usually considerably higher than the parent generation size (populatino_size)
     population_size = 20          #parent generation size >>>TUNABLE<<<
     num_offspring = 40            #child generation size >>>TUNABL<<<
-    gen_till_convergence = 5     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
+    gen_till_convergence = 20     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
     init_sigma_bounds = 5         #range in which the initial sigma variance values are set. 
     weight_upper_bound = sys.maxint = 1000000
     weight_lower_bound = -sys.maxint 
@@ -60,41 +60,55 @@ class EvolutionStrategy:
         return [weights, sigma]
    
     #create a neural net corresponding to individual and evalute its performance.
-    def evaluate(self, individual):
+    def evaluate(self, individual,databreak):
         weights = individual[0]
         point1 = self.num_input_nodes*self.num_hidden_nodes
         point2 = self.num_input_nodes*self.num_hidden_nodes+(self.num_hidden_nodes*(self.num_hidden_layers-1)*self.num_hidden_nodes)
         input = weights[:point1]
         hidden = weights[point1:point2]
         output = weights[point2:len(weights)]
-        nn = neural.NeuralNetwork()
-        net = nn.create_network(input,hidden,output)
+        nn = neural.NeuralNetwork(databreak)
+        # net = nn.create_network(input,hidden,output)
         error = nn.forward_propagate(input,hidden,output)
-        #TODO: Call to neural network with weight vector and return the error metric.
+        return error
+        
+    def final_eval(self, individual, databreak):
+        weights = individual[0]
+        point1 = self.num_input_nodes*self.num_hidden_nodes
+        point2 = self.num_input_nodes*self.num_hidden_nodes+(self.num_hidden_nodes*(self.num_hidden_layers-1)*self.num_hidden_nodes)
+        input = weights[:point1]
+        hidden = weights[point1:point2]
+        output = weights[point2:len(weights)]
+        nn = neural.NeuralNetwork(databreak)
+        # net = nn.create_network(input,hidden,output)
+        error = nn.final_eval(input,hidden,output)
         return error
         
 if __name__ == '__main__':
     es = EvolutionStrategy()
-    while(es.gen_since_change < es.gen_till_convergence):       #while we havent converged
-        es.generation = es.generation + 1                       #increase generation count  
-        es.gen_since_change = es.gen_since_change + 1           #increase non-changing generation count
-        for i in range(0, es.num_offspring):                    #generate offspring
-            chromo = es.population[random.randint(0, es.population_size - 1)]
-            es.offspring[i] = es.mutate(chromo)
-        merged_pop = es.population + es.offspring
-        scores = [None] * len(merged_pop)
-        for i in range(0, len(merged_pop)):                      #evaluate chromosomes
-            if(merged_pop[i] is not None):
-                scores[i] = [i, es.evaluate(merged_pop[i])]
-                if(es.best_individual_score is None or scores[i][1] < es.best_individual_score):         #if there is a new best chromosome
-                    es.best_individual = merged_pop[i]
-                    es.best_individual_score = scores[i][1]
-                    es.gen_since_change = 0                          #reset non=changing generation count
-        print(scores)
-        for i in range(0, es.population_size):                   #put the |population_size| best individuals into next generation
-            index, value = max(scores,key=operator.itemgetter(0))
-            while merged_pop[index] is None:
-                es.population[i] = merged_pop[index]
+    final_errors = list()
+    for databreak in range(5):
+        while(es.gen_since_change < es.gen_till_convergence):       #while we havent converged
+            es.generation = es.generation + 1                       #increase generation count  
+            es.gen_since_change = es.gen_since_change + 1           #increase non-changing generation count
+            for i in range(0, es.num_offspring):                    #generate offspring
+                chromo = es.population[random.randint(0, es.population_size - 1)]
+                es.offspring[i] = es.mutate(chromo)
+            merged_pop = es.population + es.offspring
+            scores = [None] * len(merged_pop)
+            for i in range(0, len(merged_pop)):                      #evaluate chromosomes
+                if(merged_pop[i] is not None):
+                    scores[i] = [i, es.evaluate(merged_pop[i],databreak)]
+                    if(es.best_individual_score is None or scores[i][1] < es.best_individual_score):         #if there is a new best chromosome
+                        es.best_individual = merged_pop[i]
+                        es.best_individual_score = scores[i][1]
+                        es.gen_since_change = 0                          #reset non=changing generation count
+           # print(scores)
+            for i in range(0, es.population_size):                   #put the |population_size| best individuals into next generation
                 index, value = max(scores,key=operator.itemgetter(0))
-            scores.remove([index, value])
-    print("Best individual weight matrix found. Individual: %s Score: %d." %(str(es.best_individual), es.best_individual_score))
+                while merged_pop[index] is None:
+                    es.population[i] = merged_pop[index]
+                    index, value = max(scores,key=operator.itemgetter(0))
+                scores.remove([index, value])
+        final_errors.append(es.final_eval(es.best_individual, databreak))
+    print("Best individual weight matrix found. Individual: %s Score: %s." %(str(es.best_individual), str(final_errors)))
