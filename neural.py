@@ -12,8 +12,8 @@ class NeuralNetwork:
     data_set_location = "2dData.tsv"
     dataset = list()
     test_dataset = list()
-    num_test_points = 10
-    
+    num_test_points = 100
+
     def __init__(self, databreak):
         dataset = self.load_csv(self.data_set_location)
         #print(dataset)
@@ -24,7 +24,7 @@ class NeuralNetwork:
         stop = databreak * length
         self.test_dataset = holder[stop:stop+length]
         self.dataset = holder[:stop]+holder[stop+length:len(holder)]
-        
+
     #load a CSV file
     def load_csv(self, filename):
         dataset = list()
@@ -35,7 +35,7 @@ class NeuralNetwork:
                     continue
                 dataset.append(row)
         return dataset
-        
+
     #change data string to number
     def str_to_float(self, dataset):
         for i in range(len(dataset[0])):
@@ -49,7 +49,7 @@ class NeuralNetwork:
         for row in self.dataset:
             for i in range(len(row)):
                 row[i] = (float(row[i]) - datamin[i]) / (datamax[i] - datamin[i])
-    
+
     def forward_propagate(self, in_weights, h_weights, out_weights):
         sum_error = 0
         in_weights_array = np.array_split(np.array(in_weights), self.num_input_nodes)
@@ -71,18 +71,18 @@ class NeuralNetwork:
                 sum = 0
                 for k in range(len(h_weights_array)-1):
                     sum += h_weights_array[j][k] * input_to_hidden[j]
-                sum += h_weights_array[j][len(h_weights_array)-1] * 1     #bias node 
+                sum += h_weights_array[j][len(h_weights_array)-1] * 1     #bias node
                 input_to_out.append(np.tanh(sum))
             output = 0
             for j in range(len(out_weights_array)):
                 sum = 0
                 for k in range(len(out_weights_array[j])-1):
                     sum += out_weights_array[j][k] * input_to_out[j]
-                sum += out_weights_array[j][len(out_weights_array)-1] * 1     #bias node 
+                sum += out_weights_array[j][len(out_weights_array)-1] * 1     #bias node
                 output += sum
             sum_error += (output - data[len(data)-1]) ** (2)
         return sum_error/self.num_test_points
-        
+
     def final_eval(self, in_weights, h_weights, out_weights):
         sum_error = 0
         in_weights_array = np.array_split(np.array(in_weights), self.num_input_nodes)
@@ -103,18 +103,18 @@ class NeuralNetwork:
                 sum = 0
                 for k in range(len(h_weights_array)-1):
                     sum += h_weights_array[j][k] * input_to_hidden[j]
-                sum += h_weights_array[j][len(h_weights_array)-1] * 1     #bias node 
+                sum += h_weights_array[j][len(h_weights_array)-1] * 1     #bias node
                 input_to_out.append(np.tanh(sum))
             output = 0
             for j in range(len(out_weights_array)):
                 sum = 0
                 for k in range(len(out_weights_array[j])-1):
                     sum += out_weights_array[j][k] * input_to_out[j]
-                sum += out_weights_array[j][len(out_weights_array)-1] * 1     #bias node 
+                sum += out_weights_array[j][len(out_weights_array)-1] * 1     #bias node
                 output += sum
             sum_error += (output - data[len(data)-1]) ** (2)
         return sum_error/(len(self.test_dataset))
-        
+
     def create_network(self, list_i_h_edges, list_h_h_edges, list_h_o_edges):
         num_weights = self.num_input_nodes * self.num_hidden_nodes + self.num_hidden_nodes * self.num_hidden_nodes + self.num_hidden_nodes * self.num_output_nodes
     #    print("Num_weights: "+str(num_weights))

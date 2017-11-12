@@ -14,22 +14,22 @@ class EvolutionStrategy:
     population_size = 20          #parent generation size >>>TUNABLE<<<
     num_offspring = 40            #child generation size >>>TUNABL<<<
     gen_till_convergence = 20     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
-    init_sigma_bounds = 5         #range in which the initial sigma variance values are set. 
+    init_sigma_bounds = 5         #range in which the initial sigma variance values are set.
     weight_upper_bound = sys.maxint = 1000000
-    weight_lower_bound = -sys.maxint 
-    
+    weight_lower_bound = -sys.maxint
+
     #these depend on the data set being used. They are only used for chromosome initial bounds.
     num_inputs = 5
     num_outputs = 1
-    
+
     #class variables
     population = [None] * population_size
     offspring = [None] * num_offspring
     generation = 0
     gen_since_change = 0        #for convergence, count the number of generations since an improvement was made
     best_individual = None      #keep track of the best performing individual so far
-    best_individual_score = None   #best individual's score (evaluation method return)      
-    
+    best_individual_score = None   #best individual's score (evaluation method return)
+
     def __init__(self):
         init_bounds = sqrt(6/(self.num_inputs+self.num_outputs))
         for x in range(0, self.population_size):
@@ -43,7 +43,7 @@ class EvolutionStrategy:
             for y in range(0, len(individual)):
                 individual[y] = random.uniform(-init_bounds, init_bounds)
             self.population[x] = [individual, sigma]
-    
+
     #self-adaptive guassian mutation with weights on per-chromosome basis rather than element-index specific
     #this method mutates a single chromosome
     def mutate(self, individual):
@@ -58,7 +58,7 @@ class EvolutionStrategy:
             wx = min(wx, self.weight_upper_bound)
             weights[index] = wx
         return [weights, sigma]
-   
+
     #create a neural net corresponding to individual and evalute its performance.
     def evaluate(self, individual,databreak):
         weights = individual[0]
@@ -71,7 +71,7 @@ class EvolutionStrategy:
         # net = nn.create_network(input,hidden,output)
         error = nn.forward_propagate(input,hidden,output)
         return error
-        
+
     def final_eval(self, individual, databreak):
         weights = individual[0]
         point1 = self.num_input_nodes*self.num_hidden_nodes
@@ -83,13 +83,15 @@ class EvolutionStrategy:
         # net = nn.create_network(input,hidden,output)
         error = nn.final_eval(input,hidden,output)
         return error
-        
+
 if __name__ == '__main__':
     es = EvolutionStrategy()
+    best_individuals = list()
     final_errors = list()
+    num_generations = list()
     for databreak in range(5):
         while(es.gen_since_change < es.gen_till_convergence):       #while we havent converged
-            es.generation = es.generation + 1                       #increase generation count  
+            es.generation = es.generation + 1                       #increase generation count
             es.gen_since_change = es.gen_since_change + 1           #increase non-changing generation count
             for i in range(0, es.num_offspring):                    #generate offspring
                 chromo = es.population[random.randint(0, es.population_size - 1)]
@@ -97,18 +99,23 @@ if __name__ == '__main__':
             merged_pop = es.population + es.offspring
             scores = [None] * len(merged_pop)
             for i in range(0, len(merged_pop)):                      #evaluate chromosomes
-                if(merged_pop[i] is not None):
+                if(merged_pop[i][0] is not None):
                     scores[i] = [i, es.evaluate(merged_pop[i],databreak)]
-                    if(es.best_individual_score is None or scores[i][1] < es.best_individual_score):         #if there is a new best chromosome
+                    if(es.best_individual_score is None or scores[i][1] < es.best_individual_score ):         #if there is a new best chromosome
                         es.best_individual = merged_pop[i]
                         es.best_individual_score = scores[i][1]
                         es.gen_since_change = 0                          #reset non=changing generation count
            # print(scores)
             for i in range(0, es.population_size):                   #put the |population_size| best individuals into next generation
-                index, value = max(scores,key=operator.itemgetter(0))
-                while merged_pop[index] is None:
-                    es.population[i] = merged_pop[index]
-                    index, value = max(scores,key=operator.itemgetter(0))
+                index, value = min(scores,key=operator.itemgetter(0))
+                while merged_pop[index][0] is None:
+                    scores.remove([index, value])
+                    index, value = min(scores,key=operator.itemgetter(0))
+                es.population[i] = merged_pop[index]
                 scores.remove([index, value])
+        best_individuals.append(es.best_individual)
         final_errors.append(es.final_eval(es.best_individual, databreak))
-    print("Best individual weight matrix found. Individual: %s Score: %s." %(str(es.best_individual), str(final_errors)))
+        num_generations.append(es.generation)
+        es.gen_since_change = 0
+        es.best_individual, es.best_individual_score, es.generation = None, None, 0
+    print("Best individual weight matrix found. Individuals: %s Scores: %s. Generations: %s." %(str(best_individuals), str(final_errors), str(num_generations)))
