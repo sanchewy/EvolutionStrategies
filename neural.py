@@ -1,5 +1,6 @@
 import sys
 from csv import reader
+import numpy as np
 
 #configuration parameters
 num_input_nodes = 2
@@ -21,16 +22,13 @@ def load_csv(filename):
 #change data string to number
 def str_to_float(dataset):
     for i in range(len(dataset[0])):
-        print(i)
         for row in dataset:
             row[i] = float(row[i].strip())
 
 #Linearly normalize the whole data set by min max column values.
 def normalize_data(dataset):
     datamin = [min(column) for column in zip(*dataset)]
-    print(str(datamin))
     datamax = [max(column) for column in zip(*dataset)]
-    print(str(datamax))
     for row in dataset:
         for i in range(len(row)):
             row[i] = (float(row[i]) - datamin[i]) / (datamax[i] - datamin[i])
@@ -38,7 +36,6 @@ def normalize_data(dataset):
     
 def evaluate_network(network):
     return
-    
     
 def forward_propagate(network, dataset):
     sum_error = 0
@@ -53,19 +50,22 @@ def forward_propagate(network, dataset):
     return sum_error
 
 def create_network(list_i_h_edges, list_h_h_edges, list_h_o_edges):
-    num_nodes = num_input_nodes + num_hidden_nodes * num_hidden_layers + num_output_nodes
-    network = list()
-    for x in range (len(network)):
-        network[x] = []
+    num_weights = num_input_nodes * num_hidden_nodes + num_hidden_nodes * num_hidden_nodes + num_hidden_nodes * num_output_nodes
+#    print("Num_weights: "+str(num_weights))
+    network = [[None]*num_weights for i in range(num_weights)]
+#    print("Len Network: "+str(len(network)))
+#    print("Len Network[1]: "+str(len(network[1])))
+#    print("Len of ih: "+str(len(list_i_h_edges))+" len of hh: "+str(len(list_h_h_edges))+" len of ho: "+str(len(list_h_o_edges)))
     for i in range(num_input_nodes-1):
         for j in range(num_input_nodes, num_input_nodes + num_hidden_nodes-1):
             network[i][j] = list_i_h_edges[i]
     for i in range(num_input_nodes, num_input_nodes + num_hidden_nodes-1):
         for j in range(num_input_nodes + num_hidden_nodes, num_input_nodes + num_hidden_nodes + num_hidden_nodes-1):
-            network[i][j] = list_h_h_edges
-    for i in range(num_input_nodes + num_hidden_nodes + 1, num_input_nodes + num_hidden_nodes + num_hidden_nodes):
-        for j in range(num_input_nodes + num_hidden_nodes + num_hidden_nodes + 1, num_input_nodes + num_hidden_nodes + num_hidden_nodes + num_output_nodes):
-            network[i][j] = list_h_o_edges
+#           print("Network["+str(i)+"]["+str(j)+"]: "+str(len(network[i])))
+            network[i][j] = list_h_h_edges[i-(num_input_nodes + num_hidden_nodes)]
+    for i in range(num_input_nodes + num_hidden_nodes, num_input_nodes + num_hidden_nodes + num_hidden_nodes - 1):
+        for j in range(num_input_nodes + num_hidden_nodes + num_hidden_nodes, num_input_nodes + num_hidden_nodes + num_hidden_nodes + num_output_nodes-1):
+            network[i][j] = list_h_o_edges[i-(num_input_nodes + num_hidden_nodes + num_hidden_nodes)]
     network = np.array(network)
     return network
     
@@ -73,6 +73,6 @@ def create_network(list_i_h_edges, list_h_h_edges, list_h_o_edges):
 #RUN
 dataset = load_csv('2dData.tsv')
 str_to_float(dataset)
-print(dataset)
+#print(dataset)
 normalize_data(dataset)
-print(dataset)
+#print(dataset)

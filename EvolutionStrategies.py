@@ -2,6 +2,7 @@ import sys
 import operator
 from math import exp, expm1, sqrt
 import random
+import neural
 
 class EvolutionStrategy:
     #configuration parameters
@@ -61,6 +62,12 @@ class EvolutionStrategy:
     #create a neural net corresponding to individual and evalute its performance.
     def evaluate(self, individual):
         weights = individual[0]
+        point1 = self.num_input_nodes*self.num_hidden_nodes
+        point2 = self.num_input_nodes*self.num_hidden_nodes+(self.num_hidden_nodes*(self.num_hidden_layers-1)*self.num_hidden_nodes)
+        input = weights[:point1]
+        hidden = weights[point1:point2]
+        output = weights[point2:len(weights)]
+        error = neural.create_network(input,hidden,output)
         #TODO: Call to neural network with weight vector and return the error metric.
         return 0
         
