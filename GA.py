@@ -60,6 +60,11 @@ class GA:
 		point = int(random.uniform(0, len(p1)))
 		for i in range(point, len(p1)):
 			os[i] = p2[i]
+		osScore = self.evaluate(os)
+		p1Score = self.evaluate(p1)
+		p2Score = self.evaluate(p2)
+		if(osScore > p1Score and osScore > p2Score):    #lower score is better
+			return p1
 		return os
 	
 	
