@@ -5,11 +5,11 @@ import random
 
 class NeuralNetwork:
     #configuration parameters
-    num_input_nodes = 11
+    num_input_nodes = 5
     num_output_nodes = 1
     num_hidden_layers = 2
     num_hidden_nodes = 10         #per-layer
-    data_set_location = "winequality.tsv"
+    data_set_location = "datasets/airfoil.txt"
     dataset = list()
     test_dataset = list()
     num_test_points = 100

@@ -6,14 +6,14 @@ import neural
 
 class EvolutionStrategy:
     #configuration parameters
-    num_input_nodes = 11
+    num_input_nodes = 5
     num_output_nodes = 1
     num_hidden_layers = 2
     num_hidden_nodes = 10         #per-layer
     #remember that the number_offspring is usually considerably higher than the parent generation size (populatino_size)
     population_size = 20          #parent generation size >>>TUNABLE<<<
     num_offspring = 40            #child generation size >>>TUNABL<<<
-    gen_till_convergence = 4     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
+    gen_till_convergence = 20     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
     init_sigma_bounds = 50         #range in which the initial sigma variance values are set.
     weight_upper_bound = sys.maxint = 1000000
     weight_lower_bound = -sys.maxint
