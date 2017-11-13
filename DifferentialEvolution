@@ -4,10 +4,10 @@ from math import sqrt
 class Neuron:
     attr = []
     features=0
-    MF=.5
-    CR=.9
+    MF=.5	#mutation factor (tunable)
+    CR=.9	#crossover rate (tunable)
     def __init__(self, numAttr):
-        self.features=numAttr
+        self.features=numAttr	#initializing size of Neuron attr
         self.attr=[None]*numAttr
         i=0
         for i in range(0,numAttr):
@@ -19,6 +19,7 @@ class Neuron:
         donor=Neuron(len(self.attr))
         i=0
         while i<len(self.attr):
+			#two difference vectors
             donor.attr[i]=xr1.attr[i]+self.MF*(xr2.attr[i]-xr3.attr[i])
             i+=1
         
@@ -50,7 +51,7 @@ class Neuron:
 
 
 class DifferentialEvolution:
-    num_input_nodes = 2
+    num_input_nodes = 6	#change with dataset
     num_output_nodes = 1
     num_hidden_layers = 2
     num_hidden_nodes = 10   
@@ -58,7 +59,7 @@ class DifferentialEvolution:
 
     maxSize=20  #tunable, population size
     noSigChange=0   #keeps track of change in best
-    maxRuns=25  
+    maxRuns=10  #short for video
     population=[None]*maxSize
     bestInd=None
     #add variables for NN
@@ -92,6 +93,7 @@ class DifferentialEvolution:
                 self.population[x]=individual
 
     def evaluate(self, individual,databreak):
+		#fitness function that uses NN
         weights = individual.attr
         point1 = self.num_input_nodes*self.num_hidden_nodes
         point2 = self.num_input_nodes*self.num_hidden_nodes+(self.num_hidden_nodes*(self.num_hidden_layers-1)*self.num_hidden_nodes)
@@ -105,7 +107,7 @@ class DifferentialEvolution:
         return error
 
     def final_eval(self, individual, databreak):
-
+		#for use after folds
         weights = individual.attr
         point1 = self.num_input_nodes*self.num_hidden_nodes
         point2 = self.num_input_nodes*self.num_hidden_nodes+(self.num_hidden_nodes*(self.num_hidden_layers-1)*self.num_hidden_nodes)
@@ -119,6 +121,7 @@ class DifferentialEvolution:
         return error
 
     def select(self):
+		#picks a random individual from population
         finish=False
         while(finish==False):
             picked=random.randint(0,self.maxSize)
@@ -127,6 +130,7 @@ class DifferentialEvolution:
                 selected=self.population[picked]
         return selected
     def findBest(self,pop,databreak):
+		#finds best ind in pop
         for i in range (0,len(self.population)-1):
             if self.bestInd is None:
                 self.bestInd=pop[i]
@@ -146,13 +150,15 @@ class DifferentialEvolution:
 if __name__ == '__main__' :
         de = DifferentialEvolution()
         final_errors=list()
-        for databreak in range(5):
+		#for printing
+        for databreak in range(5): #number of folds
+            print("Starting fold "+str(databreak))
             de.findBest(de.population,databreak)
             while(de.noSigChange<de.maxRuns):
-                #xi=de.select(de.population)#implement using best ind
+                #use best ind
                 xi=de.bestInd
                 xr1=de.select()
-                while(xr1.equal(xi)):
+                while(xr1.equal(xi)): #these make sure vectors are unique
                     xr1=de.select()
 
                 xr2=de.select()
@@ -172,13 +178,18 @@ if __name__ == '__main__' :
                 #checking for changes in best individual
                 if de.bestInd.equal(xi):
                     de.noSigChange+=1
+                    print("Generations without change"+str(de.noSigChange))
                 elif de.survival(xi,de.bestInd,databreak).equal(de.bestInd):
                     de.noSigChange+=1
+                    print("Generations without change"+str(de.noSigChange))
                 elif de.survival(xi,de.bestInd,databreak).equal(xi):
                     de.bestInd=xi
+                    print("Updated best individual")
                     de.noSigChange=0    #fix for final
 
             final_errors.append(de.final_eval(de.bestInd, databreak))
+            print("Fold "+str(databreak)+" finished")
+            de.noSigChange=0
         print("Best individual weight matrix found. Individual: %s Score: %s." %(str(de.bestInd.attr), str(final_errors)))
 
             
