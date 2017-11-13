@@ -5,11 +5,11 @@ import random
 
 class NeuralNetwork:
     #configuration parameters
-    num_input_nodes = 11
+    num_input_nodes = 5
     num_output_nodes = 1
     num_hidden_layers = 2
     num_hidden_nodes = 10         #per-layer
-    data_set_location = "winequality.tsv"
+    data_set_location = "datasets/airfoil.txt"
     dataset = list()
     test_dataset = list()
     num_test_points = 100
@@ -65,14 +65,14 @@ class NeuralNetwork:
                 sum = 0
                 for k in range(len(in_weights_array)):
                     sum += in_weights_array[k][j] * data[k]
-                input_to_hidden.append(np.tanh(sum))
+                input_to_hidden.append(1 - (np.tanh(sum)**(2)))
             input_to_out = list()
             for j in range(len(h_weights_array[0])):
                 sum = 0
                 for k in range(len(h_weights_array)-1):
                     sum += h_weights_array[j][k] * input_to_hidden[j]
                 sum += h_weights_array[j][len(h_weights_array)-1] * 1     #bias node
-                input_to_out.append(np.tanh(sum))
+                input_to_out.append(1 - (np.tanh(sum)**(2)))
             output = 0
             for j in range(len(out_weights_array)):
                 sum = 0
