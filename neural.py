@@ -12,7 +12,7 @@ class NeuralNetwork:
     data_set_location = "datasets/airfoil.txt"
     dataset = list()
     test_dataset = list()
-    num_test_points = 100
+    num_test_points = 20
 
     def __init__(self, databreak):
         dataset = self.load_csv(self.data_set_location)
@@ -70,7 +70,7 @@ class NeuralNetwork:
             for j in range(len(h_weights_array[0])):
                 sum = 0
                 for k in range(len(h_weights_array)-1):
-                    sum += h_weights_array[j][k] * input_to_hidden[j]
+                    sum += h_weights_array[k][j] * input_to_hidden[k]
                 sum += h_weights_array[j][len(h_weights_array)-1] * 1     #bias node
                 input_to_out.append(1 - (np.tanh(sum)**(2)))
             output = 0
