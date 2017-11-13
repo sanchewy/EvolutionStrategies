@@ -1,5 +1,5 @@
 #Start
-#Evaluate Fitngas
+#Evaluate Fitness
 #New Population
 	#Selection - roulette
 	#Crossover
@@ -17,10 +17,10 @@ import neural
 class GA:
 	print("something")	#remove this
 	#class vars
-	num_input_nodga = 2
-	num_output_nodga = 1
+	num_input_nodes = 2
+	num_output_nodes = 1
 	num_hidden_layers = 2
-	num_hidden_nodga = 10
+	num_hidden_nodes = 10
 	population_size = 20          #parent generation size >>>TUNABLE<<<
 	num_offspring = 40            #child generation size >>>TUNABL<<<
 	gen_till_convergence = 5     #number of generations with no change before "convergence" is determined. >>>TUNABLE<<<
@@ -40,15 +40,15 @@ class GA:
 	
 	def __init__(self):
 		print("init")
-		#create random chromosomga
+		#create random chromosoes
 		for x in range(0, self.population_size):
 			sigma = random.uniform(0, 5)
-			in_hidden_edgga = self.num_input_nodga * self.num_hidden_nodga
-			hidden_hidden_edgga = 0
+			in_hidden_edges = self.num_input_nodes * self.num_hidden_nodes
+			hidden_hidden_edges = 0
 			for i in range(self.num_hidden_layers -1):
-				hidden_hidden_edgga += self.num_hidden_nodga * self.num_hidden_nodga
-			hidden_out_edgga = self.num_hidden_nodga * self.num_output_nodga
-			individual = [None] * (in_hidden_edgga + hidden_hidden_edgga + hidden_out_edgga)
+				hidden_hidden_edges += self.num_hidden_nodes * self.num_hidden_nodes
+			hidden_out_edges = self.num_hidden_nodes * self.num_output_nodes
+			individual = [None] * (in_hidden_edges + hidden_hidden_edges + hidden_out_edges)
 			for y in range(0, len(individual)):
 				individual[y] = random.uniform(-1, 1)
 			self.population[x] = [individual, sigma]
@@ -56,8 +56,11 @@ class GA:
 		#initializers
 		
 	def crossover(self, p1, p2):
-		
-		return p1
+		os = p1
+		point = int(random.uniform(0, len(p1)))
+		for i in range(point, len(p1)):
+			os[i] = p2[i]
+		return os
 	
 	
 	def mutate(self, individual):
@@ -75,8 +78,8 @@ class GA:
 		
 	def evaluate(self, individual):
 		weights = individual[0]
-		point1 = self.num_input_nodga*self.num_hidden_nodga
-		point2 = self.num_input_nodga*self.num_hidden_nodga+(self.num_hidden_nodga*(self.num_hidden_layers-1)*self.num_hidden_nodga)
+		point1 = self.num_input_nodes*self.num_hidden_nodes
+		point2 = self.num_input_nodes*self.num_hidden_nodes+(self.num_hidden_nodes*(self.num_hidden_layers-1)*self.num_hidden_nodes)
 		input = weights[:point1]
 		hidden = weights[point1:point2]
 		output = weights[point2:len(weights)]
@@ -87,8 +90,8 @@ class GA:
 	
 if __name__ == '__main__':
 	ga = GA()
-	score1 = ga.evaluate(ga.population[5])
-	print(score1)
+	score1 = ga.evaluate(ga.population[0])
+	print("Initial error: %d" % score1)
 	while(ga.gen_since_change < ga.gen_till_convergence):
 		ga.generation = ga.generation + 1                       #increase generation count
 		ga.gen_since_change = ga.gen_since_change + 1           #increase non-changing generation count
@@ -114,7 +117,7 @@ if __name__ == '__main__':
 			ga.population[i] = scores[i][0]
 		
 		
-	print(ga.best_individual_score)
+	print("Error after GA: %d" % ga.best_individual_score)
 		
 		
 		
